@@ -1,162 +1,51 @@
 gsap.registerPlugin(ScrollTrigger);
 
-const body = document.querySelector('body');
-const intro = document.querySelector('.intro');
-const introCard = intro.querySelectorAll('.intro_card');
-const introMedia = intro.querySelector('.intro_media');
-
-// const isMobile = window.matchMedia('(max-width: 769px)');
-
-const init = () => {
-  gsap.set(body, { overflow: 'hidden' });
-  gsap.set(introCard[0], { scale: 0.6 });
-
-  initLenis();
-  initScrollHero();
-  initScrollMedia(); 
-}
+const contentText = document.querySelectorAll('.content_item_row_text');
+const contentImage = document.querySelectorAll('.content_media_image');
+const introImage = document.querySelector('.intro_media_image');
 
 const initLenis = () => {
   const lenis = new Lenis({
     lerp: 0.1,
-    smoothWheel: true
-  })
+    smoothWheel: true,
+  });
 
   lenis.on('scroll', ScrollTrigger.update);
 
   gsap.ticker.add((time) => lenis.raf(time*1000));
   gsap.ticker.lagSmoothing(0);
+
+  initScrollTrigger();
 }
 
-const initScrollHero = () => {
-  const tlHero = gsap.timeline({
+const initScrollTrigger = () => {
+  const tl = gsap.timeline({
     defaults: { stagger: 0.08, ease: 'power1.inOut' },
+
     scrollTrigger: {
-      trigger: '.intro_one',
+      trigger: '.app',
       start: 'top top',
-      end: 'center',
-      scrub: true,
-      pin: true,
-      pinSpacing: true      
-    }
-  })
-
-  tlHero.add('start').to(introCard[0], {
-    scale: 1
-  })
-}
-
-const initScrollMedia = () => {
-  const tlMedia = gsap.timeline({
-    scrollTrigger: {
-      trigger: intro,
-      start: 'center top',
-      end: 'bottom bottom',
-      scrub: 2,
-      pinSpacing: false, 
-    }
+      end: '+=8000 bottom',
+      scrub: 1.2,
+      pin: true
+    },
   });
-  gsap.set(introMedia, { autoAlpha: 1 });
-  tlMedia.to(introMedia, { autoAlpha: 0 });
 
-  initGalleryText();  
-}
+  gsap.set(contentText, { yPercent: 100, autoAlpha: 0, rotate: '5deg' });
+  gsap.set(contentImage, { scale: 0 })
 
-const initGalleryText = () => {
-  const gallery = document.querySelector('.gallery');
-  const galleryText = document.querySelector('.gallery_text');
-
-  ScrollTrigger.create({
-    trigger: gallery,
-    pin: galleryText,
-    start: 'top top',
-    end: 'bottom bottom'
-  });   
-
-  const texts = gsap.utils.toArray('.gallery_text_items > h2');
-  gsap.set(texts, { y: '200%', autoAlpha: 0});
-
-  texts.forEach((text, i) => {  
-    const tlGalleryText = gsap.timeline({
-      scrollTrigger: {
-        trigger: gallery,
-        start: () => `top+=${i * window.innerHeight} top+=60%`,  
-        end: () => `top+=${(i + 1) * window.innerHeight} top`,
-        scrub: 2
-      }
+  tl.to(introImage, {
+      scale: 0.8,
+      transformOrigin: 'center bottom'
     })
+    .to('.media', {
+      clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
+    }, 0);
 
-    tlGalleryText
-      .to(text, { 
-        y: 0,
-        autoAlpha: 1
-      })
-      .to(text, {
-        y: '-200%',
-        autoAlpha: 0
-      })
-  });
-
-  initConnection();
+  tl.to(contentText, { yPercent: 0, autoAlpha: '1', rotate: '0' }, 0.2)
+    .to(contentText, { yPercent: -100, autoAlpha: '0' })
+    .to(contentImage, { scale: 1 }, 0.5)
+    .to(contentImage, { scale: 0 }, 1.5);
 }
 
-const initConnection = () => {
-  const connect = document.querySelector('.connect');
-  const connectMedia = document.querySelectorAll('.connect_media');
-
-  connectMedia.forEach((media) => {
-    media.classList.contains('image--front')
-      ? gsap.set(media, { xPercent: -200, y: 0, yPercent: -50 })
-      : gsap.set(media, { xPercent: 200, y: 0, yPercent: -50 });
-  })
-
-  const tlConnect = gsap.timeline({
-    ease: 'none',
-    scrollTrigger: {
-      trigger: connect,
-      start: 'top top',
-      end: '+=3000',
-      scrub: 1,
-      pin: true,
-    }
-  });
-
-  tlConnect
-    .to(connectMedia, { xPercent: 0 })
-    .to(connectMedia, { scale: 0.5 });
-
-  initHorizontal();
-}
-
-const initHorizontal = () => {
-  const horizontal = document.querySelector('.horizontal');
-  const horizontalVerticalBox =document.querySelectorAll('.horizontal_box--vertical');
-
-  const tlHorizontal = gsap.timeline({
-    defaults: { ease: 'none' },
-    scrollTrigger: {
-      trigger: horizontal,
-      start: 'top top',
-      end: () => '+=' + horizontal.offsetWidth,
-      pin: true,
-      scrub: 1,
-      invalidateOnRefresh: true,
-    }
-  });
-
-  tlHorizontal.to('.horizontal_wrapper', {
-    x: () => -(horizontal.scrollWidth - document.documentElement.clientWidth) + 'px',
-  });
-
-  gsap.set(horizontalVerticalBox, { y: '-25%' });
-  tlHorizontal.to(horizontalVerticalBox, {
-    y: '25%',
-    stagger: 0.02
-  }, 0);
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  console.log('init');
-
-  init();
-})
+initLenis()
